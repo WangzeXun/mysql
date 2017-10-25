@@ -26,8 +26,154 @@
                ...
             )
 7.查看数据表：
-    （1）SHOW TABLES [FROM db_name];    查看（db_name）下的数据表，不加FROM查看当前数据库
-    （2）SHOW COLUMNS FROM tb_name;     查看数据表结构
+    （1）SHOW TABLES [FROM db_name];                查看（db_name）下的数据表，不加FROM查看当前数据库
+    （2）SHOW COLUMNS FROM tb_name;/DESC tb_name    查看数据表结构
 8.插入、查找记录：
     （1）INSERT tb_name [(col_name,...)] VALUES(va1,va2,...);   插入记录，部分赋值必须写明哪部分
     （2）SELECT expr,... FROM tb_name;                          查找记录
+9.约束：
+    （1）约束保证数据的完整性和一致性
+    （2）约束分为表级约束和列级约束，对一个数据列建立约束为列级约束，对多个数据列建立约束为表级约束（只能在列定义后声明）。
+    （3）约束类型包括：NOT NULL （非空约束）；PRIMARY KEY（主键约束）；UNIQUE KEY （唯一约束）；DETAULT（默认约束）；FOREIGN KEY（外键约束）
+    （4）显示索引：SHOW INDEXES FROM db_name;SHOW INDEXES FROM db_name\G(以网格呈现)
+10.外键约束：
+    （1）父表和子表必须使用相同的存储引擎，而且禁止使用临时表，数据表的存储引擎只能为InnoDB
+    （2）外键列和参照列必须具有相似的数据类型。其中数字的长度或是否有符号位必须相同；而字符的长度可以不同
+    （3）外键列和参照列必须创建索引。如果外键列不存在索引的话，mysql将自动创建索引
+    （4）外键约束的参照操作：
+            1）CASCADE      从父表删除或更新且自动删除或更新字表中匹配的行
+            2）SET NULL     从父表删除或更新行，并设置字表中的外键列为NULL。如果使用该选项，必须保证子表列没有指定NOT NULL
+            3）RESTRICT     拒绝对父表的删除或更新操作
+            4）NO ACTION    标准SQL的关键字，在mysql中与RESTRICT相同
+                 注：对于外键约束，在实际的开发过程中，我们很少使用物理的外键约束，很多都去使用逻辑的外键约束，因为物理的外键约束只有INNODB这种引擎才会支持，像我们另外的一种引擎MYISAM的引擎则不支持，反过来说，如果我想创建的数据表，假设存储引擎为MYISAM，而且又想使用外键约束的话，其实是不可能实现的，所以说，我们在实际的项目开发中，我们不去定义物理的外键，所谓的逻辑外键指的是就是我们在定义两张表的结构的时候，我们是按照存在的某种结构的方式去定义，但是不去使用FOREIGN KEY这个关键词来定义。
+11.修改数据表：
+    （1）ALTER TABLE tb_name ADD col_name column_definition [FIRST | AFTER col_name]                      在第一列或某一列后添加单列
+    （2）ALTER TABLE tb_name ADD (col_name column_definition,....)                                        只能在最后添加多列
+    （3）ALTER TABLE tb_name DROP col_name,DROP col_name,...                                              删除列，删除多列
+    （4）ALTER TABLE tb_name ADD [CONSTRAINT [symbol]] PRIMARY KEY (index_col_name)                       添加主键约束
+    （5）ALTER TABLE tb_name ADD [CONSTRAINT [symbol]] UNIQUE KEY (index_col_name,...)                    添加唯一约束
+    （6）ALTER TABLE tb_name ALTER col_name {SET DEFAULT literal | DROP DEFAULT}                          添加/删除默认约束
+    （7）ALTER TABLE tb_name DROP PRIMARY KEY                                                             删除主键约束（不用加名字是因为一张表只能有一个主键约束）
+    （8）ALTER TABLE tb_name DROP {INDEX | KEY} index_name                                                删除唯一约束（要加名字是因为一张表可以有多个唯一约束）
+    （9）ALTER TALBE tb_name MODIFY col_name column_definition [FIRST | AFTER col_name]                   修改列定义，位置
+    （10）ALTER TALBE tb_name CHANGE old_col_name new_col_name column_definition [FIRST | AFTER col_name] 修改列名称定义，位置
+    （11）ALTER TABLE tb_name RENAME [TO | AS] new_ta_name                                                修改表名字
+    （12）RENAME TABLE tb_name RENAME TO new_ta_name                                                      修改表名字
+12.操作数据表中记录：
+    （1）INSERT tb_name [(col_name,...)] {VALUES | VALUE} (expr | DEFAULT,...),(...)    插入记录，如果不加列名就要全部赋值，如果是自动的，可以写成NULL或者DEFAULT，添加多条直接逗号隔开多个括号
+    （2）INSERT tb_name SET colname={expr | DEFAULT},...                                插入记录（只能插入一条），可以使用子查询   
+    （3）INSERT tb_name [(col_name,...)] SELECT ...                                     插入记录，此方法将查询结果插入到指定表
+    （4）UPDATE table_reference SET col_name1={expr1|DEFAULT}[,col_name1={expr1|DEFAULT}]...[WHERE where_condition]     更新记录（单表更新），如果省略WHERE，全部更新
+    （5）DELETE FROM tb_name [WHERE where_condition]                                    删除记录（单表删除），如果省略WHERE，全部删除
+    （6）查找记录
+                 SELECT select_expr [,select_expr ...]
+                 [
+                    FROM table_references
+                    [WHERE where_condition]
+                    [GROUP BY {col_name | position} [ASC | DESC],...]
+                    [HAVING where_condition]
+                    [ORDER BY {col_name | expr | position} [ASC | DESC],...]
+                    [LIMIT {[offset,] row_count | row_count OFFSET offset}]
+                 ]
+       注：SELECT语句字段的出现顺序影响结果集出现的顺序；字段的别名也影响结果集的别名；
+13.子查询：子查询是指出现在其他sql语句内的select字句，必须始终出现在圆括号内
+    （1）使用比较运算符的子查询：=、>、<、>=、<=、<>、!=、<=>；any、some、all
+    （2）使用[NOT] IN的子查询，any与in等效，!=all与not in等效
+    （3）使用[NOT] EXISTS 的子查询
+14.多表操作：
+    （1）表创建同时将查询写入表：CREATE TABLE [IF NOT EXISTS] tb_name [(create_definition,...)] SELECT select_statement
+    （2）多表更新：UODATE table_references SET col_name1={expr1 | DEFAULT} [,col_name2={expr2 | DEFAULT}] ... [WHERE where_condition]
+    （3）多表删除：DELETE tb_name [.*] [,tb_name[.*]]... FROM table_references [WHERE where_condition]
+15.表连接
+    （1）语法结构：table_reference {[INNER | CROSS] JOIN | {LEFT | RIGHT} [OUTER] JOIN} table_reference ON conditional_expr
+            连接方式：
+                    1）INNER JOIN，内连接，在mysql中，JOIN, CROSS JOIN 和INNER JOIN 是等价的，仅显示符合连接条件的记录
+                    2）LEFT JOIN，左外连接，显示左表的全部和右表符合条件的记录
+                    3）RIGHT JOIN，右外连接，显示右表的全部和左表符合条件的记录
+    （2）自身连接，无限连接
+16.字符函数：
+    （1）CONCAT()       字符连接
+    （2）CONCAT_WS()    使用指定的分隔符进行字符连接
+    （3）FORMAT()       数字格式化
+    （4）LOWER()        转换成小写字母
+    （5）UPPER()        转换成大写字母
+    （6）LEFT()         获取左侧字符
+    （7）RIGHT()        获取右侧字符
+    （8）LENGTH()       获取字符串长度
+    （9）LTRIM()        删除前导空格
+    （10）RTRIM()       删除后续空格
+    （11）TRIM()        删除前导和后续空格
+    （12）SUBSTRING()   字符串截取
+    （13）[NOT] LIKE    模式匹配
+    （14）REPLACE()     字符串替换
+17.数值运算符与函数
+    （1）CEIL()         进一取整
+    （2）DIV            整数除法
+    （3）FLOOR()        舍一取整
+    （4）MOD            取模
+    （5）POWER()        幂运算
+    （6）ROUND()        四舍五入
+    （7）TRUNCATE()     数值截取
+18.比较运算符与函数
+    （1）[NOT]BETWEEN...AND...  [不]在范围之内
+    （2）[NOT]IN()              [不]在列出值范围内
+    （3）IS [NOT] NULL          [不]为空
+19.日期时间函数
+    （1）NOW()                  当前日期和时间
+    （2）CURDATE()              当前日期
+    （3）CURTIME()              当前时间
+    （4）DATE_ADD()             日期变化
+    （5）DATEDIFF()             日期差值
+    （6）DATE_FORMAT()          日期格式化
+20.信息函数
+    （1）CONNECTION_ID()        连接ID
+    （2）DATABASE()             当前数据库
+    （3）LAST_INSERT_ID()       最后插入记录的ID号
+    （4）USER()                 当前用户
+    （5）VERSION()              版本信息
+21.聚合函数
+    （1）AVG()                  平均值
+    （2）COUNT()                计数
+    （3）MAX()                  最大值
+    （4）MIN()                  最小值
+    （5）SUM()                  求和
+22.加密函数
+    （1）MD5()                  信息摘要算法
+    （2）PASSWORD()             密码算法
+23.自定义函数
+    （1）语法：CREATE FUNCTION function_name RETURNS {STRING | INTEGER | REAL | DECIMAL } routine_body
+    （2）删除函数：DROP FUNCTION function_name 
+    （3）如果函数体有多个语句，需要包含在BEGIN...END语句块中
+24.存储过程
+    （1）优点：增加sql语句的功能和灵活性；实现较快的执行速度；减少了网络流量
+    （2）语法结构：CREATE PROCEDURE sp_name ([proc_parameter[,...]]) [characteristic...] routine_body
+                        proc_parameter:[IN|OUT|INOUT]param_name type
+                        IN   		  表示该参数的值必须在调用存储过程时指定
+                        OUT   		  表示该参数的值可以被存储过程改变，并且可以返回
+                        INOUT         表示该参数的值调用时指定，并且可以被修改和返回
+    （3）调用存储过程：CALL sp_name([parameter[,...]]); CALL sp_name[()];
+    （4）删除存储过程：DROP PROCEDURE sp_name
+    （5）创建存储过程或者自定义函数时需要通过delimiter语句修改定界符
+    （6）如果过程体有多个语句，需要包含在BEGIN...END语句块中
+25.存储过程和自定义函数的区别
+    （1）存储过程实现的功能要复杂一些;而函数的针对性更强
+    （2）存储过程可以返回多个值;而函数只能有一个返回值
+    （3）存储过程一般独立的来执行;而函数可以作为其他SQL语句的组成部分来出现
+26.存储引擎
+    （1）定义：mysql可以将数据以不同的技术存储在文件（内存）中，这种技术就称为存储引擎，存储引擎就是一种存储数据，查询数据的技术！
+    （2）支持的存储引擎：MyISAM、InnoDB、Memory、CSV、Archive
+27.并发控制：当多个连接对记录进行修改时保证数据的一致性和完整性。
+    （1）系统使用锁系统来解决这个并发控制，这种锁分为：
+            1）共享锁（读锁）：在同一时间内，多个用户可以读取同一个资源，读取过程中数据不会发生任何变化。
+            2）排他锁（写锁）：在任何时候只能有一个用户写入资源，当进行写锁时会阻塞其他的读锁或者写锁操作。
+    （2）锁的力度（锁的颗粒：锁定时的单位）：
+            1）表锁，是一种开销最小的锁策略。得到数据表的写锁（禁止其他用户进行读写，只能有一个锁）
+            2）行锁，是一种开销最大的锁策略。并行性最大（有多少条记录，就有可能对每条记录都进行锁）
+            3）表锁的开销最小，因为使用锁的个数最小，行锁的开销最大，因为可能使用锁的个数比较多
+28. 事务：用于保证数据库的完整性。（ACID）
+    （1）原子性：事务中包括的诸操作要么都做，要么都不做
+    （2）一致性：事务必须使数据库从一致性状态变到另一个一致性状态
+    （3）隔离性：一个事务的执行不能被其他事务干扰
+    （4）持久性：事务一旦提交，它对数据库的改变就是永久性的
+29.外键：保证数据一致性的策略。
+30.索引：对数据表中一列或多列的值进行排序的一种结构。
